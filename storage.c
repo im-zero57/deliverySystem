@@ -228,6 +228,7 @@ int str_checkStorage(int x, int y) {
 //char passwd[] : password string (4 characters)
 //return : 0 - successfully put the package, -1 - failed to put
 int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_SIZE+1], char passwd[PASSWD_LEN+1]) {
+	
 	deliverySystem[x][y].building = nBuilding;
 	deliverySystem[x][y].room = nRoom;
 	deliverySystem[x][y].context = msg[MAX_MSG_SIZE+1];
@@ -251,7 +252,18 @@ int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_S
 //int x, int y : coordinate of the cell to extract
 //return : 0 - successfully extracted, -1 = failed to extract
 int str_extractStorage(int x, int y) {
-	
+	int passwd;
+	printf("input the password : ");
+	scanf("%4s",&passwd);
+	if(passwd==deliverySystem[x][y].passwd)
+	{
+		printf("%100s",deliverySystem[x][y].context);
+		return 0;
+	}
+	else
+	{
+		return -1;
+	}
 }
 
 //find my package from the storage
