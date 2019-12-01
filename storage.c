@@ -132,6 +132,23 @@ int str_backupSystem(char* filepath) {
 //char* filepath : filepath and name to read config parameters (row, column, master password, past contexts of the delivery system
 //return : 0 - successfully created, -1 - failed to create the system
 int str_createSystem(char* filepath) {
+	FILE *fp;
+	int i,j;
+	fp = fopen("filepath","rb");
+	if(fp==NULL)
+	{
+		return -1;
+	}
+	for(i=0;i<MAX_LOW;i++)
+	{
+		for(j=0;j<MAX_COLUMN;j++)
+		{
+			fread(&deliverySystem[i][j],1,fp)
+		}
+	}
+	
+	fcloase(fp);
+	
 	
 }
 
