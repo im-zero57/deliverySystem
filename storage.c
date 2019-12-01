@@ -28,13 +28,8 @@ typedef struct {
 static storage_t** deliverySystem; 			//deliverySystem
 static int storedCnt = 0;					//number of cells occupied
 static int systemSize[2] = {0, 0};  		//row/column of the delivery system
-static char masterPassword[4];	//master password
-
-masterPawword[0]=0;
-masterPawword[1]=5;
-masterPawword[2]=0;
-masterPawword[3]=7;
-
+static int masterPassword[4] = {0, 5, 0, 7};				//master password
+//마스터 패스워드는 그냥 제 생일롤 해보았습니다. 
 
 // ------- inner functions ---------------
 
@@ -58,11 +53,10 @@ static void printStorageInside(int x, int y) {
 //int x, int y : cell coordinate to be initialized
 static void initStorage(int x, int y) {
 	
-	int *ptr_row, *ptr_column; 
-	ptr_row = &x;
-	ptr_column = &y;
-	systemSize[0] = *ptr_row;
-	systemSize[1] = *ptr_column; 
+	deliverySystem[x][y].building=NULL;
+	deliverySystem[x][y].context=NULL;
+	deliverySystem[x][y].passwd=NULL;
+	deliverySystem[x][y].room=NULL;
 	
 }
 
@@ -71,16 +65,16 @@ static void initStorage(int x, int y) {
 //return : 0 - password is matching, -1 - password is not matching
 static int inputPasswd(int x, int y) {
 	int i;
+	char record_pass;
 	int record; //리턴할 값을 임시로 저장하는 변수 
-	for(i=0;i<PASSWD_LEN+1;i++)
-	{
-		if(//패스워드를 한글자씩 가져옴//
-		==deliverySystem[x][y].PASSWD.[i])
-			record = 0;
-		else if(//패스워드를 한글자씩 가져옴//
-		!= deliverySystem[x][y].passwd[i])
-			record = -1;
-			break;
+	printf("input the password : ");
+	scanf("%4s",&record_pass)
+	
+	if(record_pass==deliverySystem[x][y].passwd)
+		record = 0;
+	else if(record_pass!= deliverySystem[x][y].passwd[i])
+		record = -1;
+		break;
 	}
 }
 
@@ -253,11 +247,11 @@ int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_S
 //return : 0 - successfully extracted, -1 = failed to extract
 int str_extractStorage(int x, int y) {
 	int passwd;
-	printf("input the password : ");
-	scanf("%4s",&passwd);
-	if(passwd==deliverySystem[x][y].passwd)
+	passwd = inputPasswd(x, y);
+	if(passwd==0)
 	{
 		printf("%100s",deliverySystem[x][y].context);
+		initStorage(x,y);
 		return 0;
 	}
 	else
