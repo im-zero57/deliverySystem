@@ -52,6 +52,12 @@ static void printStorageInside(int x, int y) {
 //int x, int y : cell coordinate to be initialized
 static void initStorage(int x, int y) {
 	
+	int *ptr_row, *ptr_column; 
+	ptr_row = &x;
+	ptr_column = &y;
+	systemSize[0] = *ptr_row;
+	systemSize[1] = *ptr_column; 
+	
 }
 
 //get password input and check if it is correct for the cell (x,y)
