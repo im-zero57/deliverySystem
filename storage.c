@@ -13,7 +13,7 @@
   int room : room number of the destination
   int cnt : number of packages in the cell
   char passwd[] : password setting (4 characters)
-  char *contents : package context (message string)
+  char *context : package context (message string)
 */
 typedef struct {
 	int building;
@@ -228,7 +228,20 @@ int str_checkStorage(int x, int y) {
 //char passwd[] : password string (4 characters)
 //return : 0 - successfully put the package, -1 - failed to put
 int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_SIZE+1], char passwd[PASSWD_LEN+1]) {
+	deliverySystem[x][y].building = nBuilding;
+	deliverySystem[x][y].room = nRoom;
+	deliverySystem[x][y].context = msg[MAX_MSG_SIZE+1];
+	deliverySystem[x][y].passwd = passwd[PASSWD_LEN+1];
 	
+	if(deliverySystem[x][y].building==NULL||
+	   deliverySystem[x][y].room==NULL||
+	   deliverySystem[x][y].context==NULL||
+	   deliverySystem[x][y].passwd==NULL){
+	   	return -1;
+	   }
+	
+	else   
+		return 0;   
 }
 
 
