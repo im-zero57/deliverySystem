@@ -3,6 +3,9 @@
 #include <string.h>
 #include "storage.h"
 
+#define MAX_ROW				4
+#define MAX_COLUMN			6
+
 /* 
   definition of storage cell structure ----
   members :
@@ -88,7 +91,27 @@ static int inputPasswd(int x, int y) {
 //char* filepath : filepath and name to write
 //return : 0 - backup was successfully done, -1 - failed to backup
 int str_backupSystem(char* filepath) {
+	FILE *fp;
+	int i, j;
+	fp = fopen("filepath","w");
+	fprintf(fp,"%d",MAX_ROW);
+	fprintf(fp,"%d",MAX_COLUMN);
 	
+	for(i=0;i<MAX_ROW;i++)
+	{
+		for(j=0;j<MAX_COLUMN;j++)
+		{
+			fprintf(fp,"%d",deliverySystem[x][y].building);
+			fprintf(fp,"%d",deliverySystem[x][y].cnt);
+			fprintf(fp,"%d",deliverySystem[x][y].context);
+			fprintf(fp,"%d",deliverySystem[x][y].passwd);
+			fprintf(fp,"%d",deliverySystem[x][y].room);
+		}
+	}
+	for(i=0;i<PASSWD_LEN+1;i++)
+	{
+		fprintf(fp,"%d",masterPassword[i]);
+	}
 }
 
 
