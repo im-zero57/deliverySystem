@@ -28,9 +28,12 @@ typedef struct {
 static storage_t** deliverySystem; 			//deliverySystem
 static int storedCnt = 0;					//number of cells occupied
 static int systemSize[2] = {0, 0};  		//row/column of the delivery system
-static char masterPassword[PASSWD_LEN+1];	//master password
+static char masterPassword[4];	//master password
 
-
+masterPawword[0]=0;
+masterPawword[1]=5;
+masterPawword[2]=0;
+masterPawword[3]=7;
 
 
 // ------- inner functions ---------------
@@ -91,13 +94,14 @@ static int inputPasswd(int x, int y) {
 //char* filepath : filepath and name to write
 //return : 0 - backup was successfully done, -1 - failed to backup
 int str_backupSystem(char* filepath) {
-	FILE *fp;
-	int i, j;
-	fp = fopen("filepath","w");
-	fprintf(fp,"%d",MAX_ROW);
-	fprintf(fp,"%d",MAX_COLUMN);
+	FILE *fp;							//define file pointer to write 
+	FILE *fp_ch;						//define file pointer to check that the system context is well recorded
+	int i, j;							//define number used "for" 
+	fp = fopen("filepath","w");			
+	fprintf(fp,"%d",MAX_ROW);			//record row 
+	fprintf(fp,"%d",MAX_COLUMN);		//record column
 	
-	for(i=0;i<MAX_ROW;i++)
+	for(i=0;i<MAX_ROW;i++)				//record structure related with delivery
 	{
 		for(j=0;j<MAX_COLUMN;j++)
 		{
@@ -108,10 +112,18 @@ int str_backupSystem(char* filepath) {
 			fprintf(fp,"%d",deliverySystem[x][y].room);
 		}
 	}
-	for(i=0;i<PASSWD_LEN+1;i++)
+	for(i=0;i<4;i++)			//record master password
 	{
 		fprintf(fp,"%d",masterPassword[i]);
 	}
+	fclose(fp);
+	
+	fp_ch = fopen("filepath","r");
+	
+	if(fp_ch==NULL)
+		return -1;
+	else
+		return 0;
 }
 
 
