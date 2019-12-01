@@ -271,7 +271,19 @@ int str_extractStorage(int x, int y) {
 //int nBuilding, int nRoom : my building/room numbers
 //return : number of packages that the storage system has
 int str_findStorage(int nBuilding, int nRoom) {
-	int cnt;
+	int i,j;	
+	for(i=0;i<MAX_ROW;i++)
+	{
+		for(j=0;j<MAX_COLUMN;j++)
+		{
+			if(deliverySystem[i][j].building==nBuilding&&deliverySystem[i][j].room==nRoom)
+			{
+				cnt=deliverySystem[i][j].cnt;
+				break;
+			}
+			
+		}
+	}
 	
 	return cnt;
 }
