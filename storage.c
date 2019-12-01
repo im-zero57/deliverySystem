@@ -132,9 +132,10 @@ int str_backupSystem(char* filepath) {
 //char* filepath : filepath and name to read config parameters (row, column, master password, past contexts of the delivery system
 //return : 0 - successfully created, -1 - failed to create the system
 int str_createSystem(char* filepath) {
-	FILE *fp;
+	
+	FILE *fp_read;
 	int i,j;
-	fp = fopen("filepath","rb");
+	fp_read = fopen("filepath","rb");
 	if(fp==NULL)
 	{
 		return -1;
@@ -143,7 +144,7 @@ int str_createSystem(char* filepath) {
 	{
 		for(j=0;j<MAX_COLUMN;j++)
 		{
-			fread(&deliverySystem[i][j],1,fp)
+			fread(&deliverySystem[i][j],1,fp_read)
 		}
 	}
 	
@@ -154,7 +155,18 @@ int str_createSystem(char* filepath) {
 
 //free the memory of the deliverySystem 
 void str_freeSystem(void) {
-	
+	int i,j;
+	for(i=0;i<MAX_ROW;i++)
+	{
+		for(j=0;j<MAX_COLUMN;j++)
+		{
+			deliverySystem[i][j].building=NULL;
+			deliverySystem[i][j].cnt=NULL;
+			deliverySystem[i][j].context=NULL;
+			deliverySystem[i][j].passwd=NULL;
+			deliverySystem[i][j].room=NULL;
+		}
+	}
 }
 
 
