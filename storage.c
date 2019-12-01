@@ -64,7 +64,18 @@ static void initStorage(int x, int y) {
 //int x, int y : cell for password check
 //return : 0 - password is matching, -1 - password is not matching
 static int inputPasswd(int x, int y) {
-	
+	int i;
+	int record; //리턴할 값을 임시로 저장하는 변수 
+	for(i=0;i<PASSWD_LEN+1;i++)
+	{
+		if(//패스워드를 한글자씩 가져옴//
+		==deliverySystem[x][y].PASSWD.[i])
+			record = 0;
+		else if(//패스워드를 한글자씩 가져옴//
+		!= deliverySystem[x][y].passwd[i])
+			record = -1;
+			break;
+	}
 }
 
 
@@ -171,6 +182,7 @@ int str_extractStorage(int x, int y) {
 //int nBuilding, int nRoom : my building/room numbers
 //return : number of packages that the storage system has
 int str_findStorage(int nBuilding, int nRoom) {
+	int cnt;
 	
 	return cnt;
 }
