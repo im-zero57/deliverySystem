@@ -5,7 +5,6 @@
 #define N_BUILDING				10
 #define N_FLOOR					10
 #define N_ROOM					10
-#define PASSWD_LEN				3
 #define STORAGE_FILEPATH 		"storage.txt"
 
 /* run this program using the console pauser or add your own getch, system("pause") or input loop */

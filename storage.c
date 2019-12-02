@@ -3,8 +3,7 @@
 #include <string.h>
 #include "storage.h"
 
-#define MAX_ROW				4
-#define MAX_COLUMN			6
+
 
 /* 
   definition of storage cell structure ----
@@ -28,9 +27,9 @@ typedef struct {
 static storage_t** deliverySystem; 			//deliverySystem
 static int storedCnt = 0;					//number of cells occupied
 static int systemSize[2] = {0, 0};  		//row/column of the delivery system
-static int masterPassword[4] = {0, 5, 0, 7};				//master password
-//마스터 패스워드는 그냥 제 생일롤 해보았습니다. 
-int passwd[PASSWD_LEN+1];
+static int masterPassword[PASSWD_LEN+1];				//master password
+static int MAX_ROW, MAX_COLUMN;
+int password[PASSWD_LEN+1];
 
 // ------- inner functions ---------------
 
@@ -54,11 +53,11 @@ static void printStorageInside(int x, int y) {
 //int x, int y : cell coordinate to be initialized
 static void initStorage(int x, int y) {
 	
-	deliverySystem[x][y].building= 0;
-	deliverySystem[x][y].context= 0;
-	deliverySystem[x][y].passwd= 0;
-	deliverySystem[x][y].room= 0;
-	deliverySystem[x][y].cnt = 0;
+	deliverySystem[x][y].building= '\0';
+	deliverySystem[x][y].context= '\0';
+	deliverySystem[x][y].passwd[PASSWD_LEN+1]= '\0';
+	deliverySystem[x][y].room= '\0';
+	deliverySystem[x][y].cnt = '\0';
 	
 }
 
@@ -67,21 +66,19 @@ static void initStorage(int x, int y) {
 //return : 0 - password is matching, -1 - password is not matching
 static int inputPasswd(int x, int y) {
 	int i;
-	char record_pass;
-	int record; //리턴할 값을 임시로 저장하는 변수 
+ 
 	printf("input the password : ");
-	scanf("%4s",&passwd[PASSWD_LEN+1],);
+	scanf("%4s",&password[PASSWD_LEN+1]);
 	
-	for(i=0;i<4;i++)
+	for(i=0;i<PASSWD_LEN+1;i++)
 	{
-		if(record_pass[i]==deliverySystem[x][y].passwd[i])
-			record = 0;
-		else if(record_pass[i]!= deliverySystem[x][y].passwd[i])
-			record = -1;
+		if(password[i]==deliverySystem[x][y].passwd[i])
+			return 0;
+		else
+			return -1;
 			break;
 		
 	}
-	return record;
 }
 
 
@@ -98,34 +95,28 @@ int str_backupSystem(char* filepath) {
 	FILE *fp_ch;						//define file pointer to check that the system context is well recorded
 	int i, j;							//define number used "for" 
 	fp = fopen("filepath","w");			
-	fprintf(fp,"%d",MAX_ROW);			//record row 
-	fprintf(fp,"%d",MAX_COLUMN);		//record column
-	
+								//record row 
+								//record column
+	fprintf(fp,"\t");
 	for(i=0;i<MAX_ROW;i++)				//record structure related with delivery
 	{
 		for(j=0;j<MAX_COLUMN;j++)
 		{
-			fprintf(fp,"%d",deliverySystem[x][y].building);
-			fprintf(fp,"%d",deliverySystem[x][y].cnt);
-			fprintf(fp,"%d",deliverySystem[x][y].context);
-			fprintf(fp,"%d",deliverySystem[x][y].passwd);
-			fprintf(fp,"%d",deliverySystem[x][y].room);
+			fprintf(fp,"%d %d %100s %4s %d",deliverySystem[i][j].building,deliverySystem[i][j].cnt,deliverySystem[i][j].context,deliverySystem[i][j].passwd[PASSWD_LEN+1],deliverySystem[i][j].room);
+			fprintf(fp,"\n");
 		}
 	}
-	for(i=0;i<4;i++)			//record master password
-	{
-		fprintf(fp,"%d",masterPassword[i]);
-	}
+	fprintf(fp,"\r");
 	fclose(fp);
 	
 	fp_ch = fopen("filepath","r");
-	
 	if(fp_ch==NULL)
 		return -1;
 	else
 		return 0;
+		
+	fclose(fp_ch);	
 }
-
 
 
 //create delivery system on the double pointer deliverySystem
@@ -135,20 +126,33 @@ int str_createSystem(char* filepath) {
 	
 	FILE *fp_read;
 	int i,j;
-	fp_read = fopen("filepath","rb");
-	if(fp==NULL)
+	int c;
+	
+	fp_read = fopen("filepath","r");
+	if(fp_read==NULL)
 	{
 		return -1;
 	}
-	for(i=0;i<MAX_LOW;i++)
+	
+	while((c=fgetc(fp_read))!='\t')
+		fscanf(fp_read,"%d %d",&MAX_ROW,&MAX_COLUMN);
+
+	while((c=fgetc(fp_read))!='\r')
 	{
-		for(j=0;j<MAX_COLUMN;j++)
+		for(i=0;i<MAX_ROW;i++)
 		{
-			fread(&deliverySystem[i][j],1,fp_read);
+			for(j=0;j<MAX_COLUMN;j++)
+			{
+				fscanf(fp_read,"%d %d %100s %4s %d",&deliverySystem[i][j].building,&deliverySystem[i][j].cnt,&deliverySystem[i][j].context,&deliverySystem[i][j].passwd[PASSWD_LEN+1],&deliverySystem[i][j].room);
+			}
 		}
 	}
-	
-	fcloase(fp_read);
+	while((c=fgetc(fp_read))!=EOF)
+	{
+		fscanf(fp_read,"%4s",&masterPassword[PASSWD_LEN+1]);
+	}
+
+	fclose(fp_read);
 	
 	
 }
@@ -160,11 +164,11 @@ void str_freeSystem(void) {
 	{
 		for(j=0;j<MAX_COLUMN;j++)
 		{
-			deliverySystem[i][j].building=NULL;
-			deliverySystem[i][j].cnt=NULL;
-			deliverySystem[i][j].context=NULL;
-			deliverySystem[i][j].passwd=NULL;
-			deliverySystem[i][j].room=NULL;
+			deliverySystem[i][j].building='\0';
+			deliverySystem[i][j].cnt='\0';
+			deliverySystem[i][j].context='\0';
+			deliverySystem[i][j].passwd[PASSWD_LEN+1]='\0';
+			deliverySystem[i][j].room='\0';
 		}
 	}
 }
@@ -233,7 +237,7 @@ int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_S
 	deliverySystem[x][y].building = nBuilding;
 	deliverySystem[x][y].room = nRoom;
 	 
-	for (i=0;i<MAX_MAS_SIZE+1;i++)
+	for (i=0;i<MAX_MSG_SIZE+1;i++)
 	{
 		if(msg[i]!='\0')
 		{
@@ -244,7 +248,7 @@ int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_S
 	}
 	for(i=0;i<PASSWD_LEN+1;i++)
 	{
-		if(passwd[PASSWD_LEN+1]!='\0')
+		if(passwd[i]!='\0')
 		{
 			deliverySystem[x][y].passwd[i] = passwd[i];
 		}
@@ -252,7 +256,7 @@ int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_S
 			break;
 	}
 	
-	if(deliverySystem[x][y].building==NULL||deliverySystem[x][y].room==NULL||deliverySystem[x][y].context==NULL||deliverySystem[x][y].passwd==NULL)
+	if(deliverySystem[x][y].building=='\0'||deliverySystem[x][y].room=='\0'||deliverySystem[x][y].context[MAX_MSG_SIZE+1]=='\0'||deliverySystem[x][y].passwd[PASSWD_LEN+1]=='\0')
 		return -1;
 	
 	else   
@@ -267,10 +271,18 @@ int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_S
 //return : 0 - successfully extracted, -1 = failed to extract
 int str_extractStorage(int x, int y) {
 	int passwd;
+	int i;
 	passwd = inputPasswd(x, y);
 	if(passwd==0)
 	{
-		printf("%100s",deliverySystem[x][y].context);
+		
+		for(i=0;i<MAX_MSG_SIZE+1;i++)
+		{
+			while(deliverySystem[x][y].context[i] !='\0')
+			{
+				printf("%s",deliverySystem[x][y].context[i]);
+			}
+		}
 		initStorage(x,y);
 		return 0;
 	}
@@ -285,16 +297,19 @@ int str_extractStorage(int x, int y) {
 //int nBuilding, int nRoom : my building/room numbers
 //return : number of packages that the storage system has
 int str_findStorage(int nBuilding, int nRoom) {
-	int i,j;	
+	int i,j;
+	int cnt=0;	
 	for(i=0;i<MAX_ROW;i++)
 	{
 		for(j=0;j<MAX_COLUMN;j++)
 		{
 			if(deliverySystem[i][j].building==nBuilding&&deliverySystem[i][j].room==nRoom)
 			{
-				cnt=deliverySystem[i][j].cnt;
-				break;
+				printf("{%d, %d}", i,j);
+				cnt++;
 			}
+			else
+				break;
 			
 		}
 	}
