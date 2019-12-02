@@ -30,6 +30,7 @@ static int storedCnt = 0;					//number of cells occupied
 static int systemSize[2] = {0, 0};  		//row/column of the delivery system
 static int masterPassword[4] = {0, 5, 0, 7};				//master password
 //마스터 패스워드는 그냥 제 생일롤 해보았습니다. 
+int passwd[PASSWD_LEN+1];
 
 // ------- inner functions ---------------
 
@@ -53,10 +54,11 @@ static void printStorageInside(int x, int y) {
 //int x, int y : cell coordinate to be initialized
 static void initStorage(int x, int y) {
 	
-	deliverySystem[x][y].building=NULL;
-	deliverySystem[x][y].context=NULL;
-	deliverySystem[x][y].passwd=NULL;
-	deliverySystem[x][y].room=NULL;
+	deliverySystem[x][y].building= 0;
+	deliverySystem[x][y].context= 0;
+	deliverySystem[x][y].passwd= 0;
+	deliverySystem[x][y].room= 0;
+	deliverySystem[x][y].cnt = 0;
 	
 }
 
@@ -68,14 +70,18 @@ static int inputPasswd(int x, int y) {
 	char record_pass;
 	int record; //리턴할 값을 임시로 저장하는 변수 
 	printf("input the password : ");
-	scanf("%4s",&record_pass)
+	scanf("%4s",&passwd[PASSWD_LEN+1],);
 	
-	if(record_pass==deliverySystem[x][y].passwd)
-		record = 0;
-	else if(record_pass!= deliverySystem[x][y].passwd[i])
-		record = -1;
-		break;
+	for(i=0;i<4;i++)
+	{
+		if(record_pass[i]==deliverySystem[x][y].passwd[i])
+			record = 0;
+		else if(record_pass[i]!= deliverySystem[x][y].passwd[i])
+			record = -1;
+			break;
+		
 	}
+	return record;
 }
 
 
@@ -138,11 +144,11 @@ int str_createSystem(char* filepath) {
 	{
 		for(j=0;j<MAX_COLUMN;j++)
 		{
-			fread(&deliverySystem[i][j],1,fp_read)
+			fread(&deliverySystem[i][j],1,fp_read);
 		}
 	}
 	
-	fcloase(fp);
+	fcloase(fp_read);
 	
 	
 }
@@ -223,17 +229,31 @@ int str_checkStorage(int x, int y) {
 //return : 0 - successfully put the package, -1 - failed to put
 int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_SIZE+1], char passwd[PASSWD_LEN+1]) {
 	
+	int i;
 	deliverySystem[x][y].building = nBuilding;
 	deliverySystem[x][y].room = nRoom;
-	deliverySystem[x][y].context = msg[MAX_MSG_SIZE+1];
-	deliverySystem[x][y].passwd = passwd[PASSWD_LEN+1];
+	 
+	for (i=0;i<MAX_MAS_SIZE+1;i++)
+	{
+		if(msg[i]!='\0')
+		{
+			deliverySystem[x][y].context[i]=msg[i];
+		}
+		else
+			break;
+	}
+	for(i=0;i<PASSWD_LEN+1;i++)
+	{
+		if(passwd[PASSWD_LEN+1]!='\0')
+		{
+			deliverySystem[x][y].passwd[i] = passwd[i];
+		}
+		else
+			break;
+	}
 	
-	if(deliverySystem[x][y].building==NULL||
-	   deliverySystem[x][y].room==NULL||
-	   deliverySystem[x][y].context==NULL||
-	   deliverySystem[x][y].passwd==NULL){
-	   	return -1;
-	   }
+	if(deliverySystem[x][y].building==NULL||deliverySystem[x][y].room==NULL||deliverySystem[x][y].context==NULL||deliverySystem[x][y].passwd==NULL)
+		return -1;
 	
 	else   
 		return 0;   
