@@ -105,13 +105,13 @@ int str_backupSystem(char* filepath) {
 		for(j=0;j<MAX_COLUMN;j++)
 		{
 			fprintf(fp,"%d %d %d",deliverySystem[i][j].building,deliverySystem[i][j].cnt,deliverySystem[i][j].room);
-			for(k=0;k<MAX_MSG_SIZE+1,k++)
+			for(k=0;k<MAX_MSG_SIZE+1;k++)
 			{
-				fprintf("%s",deliverySystem[i][j].context[k]);
+				fprintf(fp,"%s",deliverySystem[i][j].context[k]);
 			}
-			for(t=0;t<PASSWD_LEN+1,t++)
+			for(t=0;t<PASSWD_LEN+1;t++)
 			{
-				fprintf("%s",deliverySystem[i][j].passwd[t]);
+				fprintf(fp,"%s",deliverySystem[i][j].passwd[t]);
 			}
 			fprintf(fp,"\n");
 		}
@@ -223,7 +223,7 @@ int str_checkStorage(int x, int y) {
 //return : 0 - successfully put the package, -1 - failed to put
 int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_SIZE+1], char passwd[PASSWD_LEN+1]) {
 	
-	int i;
+	int i, check_number;
 	deliverySystem[x][y].building = nBuilding;
 	deliverySystem[x][y].room = nRoom;
 	 
@@ -245,8 +245,14 @@ int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_S
 		else
 			break;
 	}
+	check_number = str_check(deliverySystem[x][y].context);
 	
-	if(deliverySystem[x][y].building=='\0'||deliverySystem[x][y].room=='\0'||deliverySystem[x][y].context[MAX_MSG_SIZE+1]=='\0'||deliverySystem[x][y].passwd[PASSWD_LEN+1]=='\0')
+	if(check_number>0)
+		deliverySystem[x][y].cnt=1;
+	else
+		deliverySystem[x][y].cnt=0;
+	
+	if(deliverySystem[x][y].cnt=0)
 		return -1;
 	
 	else   
@@ -268,7 +274,7 @@ int str_extractStorage(int x, int y) {
 		
 		for(i=0;i<MAX_MSG_SIZE+1;i++)
 		{
-			while(deliverySystem[x][y].context[i] !='\0')
+			if(deliverySystem[x][y].context[i] !='\0')
 			{
 				printf("%s",deliverySystem[x][y].context[i]);
 			}
@@ -298,8 +304,6 @@ int str_findStorage(int nBuilding, int nRoom) {
 				printf("{%d, %d}", i,j);
 				cnt++;
 			}
-			else
-				break;
 			
 		}
 	}
