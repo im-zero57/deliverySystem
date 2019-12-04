@@ -95,7 +95,7 @@ static int inputPasswd(int x, int y) {
 int str_backupSystem(char* filepath) {
 	FILE *fp;							//define file pointer to write 
 	FILE *fp_ch;						//define file pointer to check that the system context is well recorded
-	int i, j;							//define number used "for" 
+	int i, j, k, t;							//define number used "for" 
 	fp = fopen("filepath","w");			
 								//record row 
 								//record column
@@ -104,7 +104,15 @@ int str_backupSystem(char* filepath) {
 	{
 		for(j=0;j<MAX_COLUMN;j++)
 		{
-			fprintf(fp,"%d %d %100s %4s %d",deliverySystem[i][j].building,deliverySystem[i][j].cnt,deliverySystem[i][j].context,deliverySystem[i][j].passwd[PASSWD_LEN+1],deliverySystem[i][j].room);
+			fprintf(fp,"%d %d %d",deliverySystem[i][j].building,deliverySystem[i][j].cnt,deliverySystem[i][j].room);
+			for(k=0;k<MAX_MSG_SIZE+1,k++)
+			{
+				fprintf("%s",deliverySystem[i][j].context[k]);
+			}
+			for(t=0;t<PASSWD_LEN+1,t++)
+			{
+				fprintf("%s",deliverySystem[i][j].passwd[t]);
+			}
 			fprintf(fp,"\n");
 		}
 	}
