@@ -29,7 +29,8 @@ static int storedCnt = 0;					//number of cells occupied
 static int systemSize[2] = {0, 0};  		//row/column of the delivery system
 static int masterPassword[PASSWD_LEN+1];				//master password
 static int MAX_ROW, MAX_COLUMN;
-int password[PASSWD_LEN+1];
+static int password[PASSWD_LEN+1];
+
 
 // ------- inner functions ---------------
 
@@ -53,18 +54,19 @@ static void printStorageInside(int x, int y) {
 //int x, int y : cell coordinate to be initialized
 static void initStorage(int x, int y) {
 	
-	deliverySystem[x][y].building= '\0';
-	deliverySystem[x][y].context= '\0';
-	deliverySystem[x][y].passwd[PASSWD_LEN+1]= '\0';
-	deliverySystem[x][y].room= '\0';
+	deliverySystem[x][y].building = '\0';
 	deliverySystem[x][y].cnt = '\0';
+	deliverySystem[x][y].context = '\0';
+	deliverySystem[x][y].passwd[PASSWD_LEN+1]= '\0';
+	deliverySystem[x][y].room = '\0';
 	
-}
+}//이렇게 하면안되는지... 포인터에 메모리를 할당하는것..? 
 
 //get password input and check if it is correct for the cell (x,y)
 //int x, int y : cell for password check
 //return : 0 - password is matching, -1 - password is not matching
 static int inputPasswd(int x, int y) {
+	
 	int i;
  
 	printf("input the password : ");
@@ -124,53 +126,33 @@ int str_backupSystem(char* filepath) {
 //return : 0 - successfully created, -1 - failed to create the system
 int str_createSystem(char* filepath) {
 	
-	FILE *fp_read;
-	int i,j;
-	int c;
-	
-	fp_read = fopen("filepath","r");
-	if(fp_read==NULL)
+	int i;
+	deliverySystem=(storage_t**)malloc(sizeof(storage_t*)*MAX_ROW);
+	for(i=0;i<MAX_COLUMN;i++)
+	{
+		deliverySystem[i]=(storage_t*)malloc(sizeof(storage_t)*MAX_COLUMN);
+	}
+
+	if(deliverySystem==NULL)
 	{
 		return -1;
 	}
-	
-	while((c=fgetc(fp_read))!='\t')
-		fscanf(fp_read,"%d %d",&MAX_ROW,&MAX_COLUMN);
-
-	while((c=fgetc(fp_read))!='\r')
-	{
-		for(i=0;i<MAX_ROW;i++)
-		{
-			for(j=0;j<MAX_COLUMN;j++)
-			{
-				fscanf(fp_read,"%d %d %100s %4s %d",&deliverySystem[i][j].building,&deliverySystem[i][j].cnt,&deliverySystem[i][j].context,&deliverySystem[i][j].passwd[PASSWD_LEN+1],&deliverySystem[i][j].room);
-			}
-		}
-	}
-	while((c=fgetc(fp_read))!=EOF)
-	{
-		fscanf(fp_read,"%4s",&masterPassword[PASSWD_LEN+1]);
-	}
-
-	fclose(fp_read);
-	
+	else 
+		return 0;
 	
 }
 
 //free the memory of the deliverySystem 
 void str_freeSystem(void) {
-	int i,j;
-	for(i=0;i<MAX_ROW;i++)
+	
+	int i;
+	for(i=0;i<MAX_COLUMN;i++)
 	{
-		for(j=0;j<MAX_COLUMN;j++)
-		{
-			deliverySystem[i][j].building='\0';
-			deliverySystem[i][j].cnt='\0';
-			deliverySystem[i][j].context='\0';
-			deliverySystem[i][j].passwd[PASSWD_LEN+1]='\0';
-			deliverySystem[i][j].room='\0';
-		}
+		free(deliverySystem[i]);
 	}
+	
+	free(deliverySystem);
+	
 }
 
 
