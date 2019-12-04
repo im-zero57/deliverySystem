@@ -96,7 +96,7 @@ int str_backupSystem(char* filepath) {
 	FILE *fp;							//define file pointer to write 
 	FILE *fp_ch;						//define file pointer to check that the system context is well recorded
 	int i, j, k, t;							//define number used "for" 
-	fp = fopen("filepath","w");			
+	fp = fopen(filepath,"w");			
 								//record row 
 								//record column
 	fprintf(fp,"\t");
@@ -105,21 +105,24 @@ int str_backupSystem(char* filepath) {
 		for(j=0;j<MAX_COLUMN;j++)
 		{
 			fprintf(fp,"%d %d %d",deliverySystem[i][j].building,deliverySystem[i][j].cnt,deliverySystem[i][j].room);
+			
 			for(k=0;k<MAX_MSG_SIZE+1;k++)
 			{
 				fprintf(fp,"%s",deliverySystem[i][j].context[k]);
 			}
+			
 			for(t=0;t<PASSWD_LEN+1;t++)
 			{
 				fprintf(fp,"%s",deliverySystem[i][j].passwd[t]);
 			}
+			
 			fprintf(fp,"\n");
 		}
 	}
 	fprintf(fp,"\r");
 	fclose(fp);
 	
-	fp_ch = fopen("filepath","r");
+	fp_ch = fopen(filepath,"r");
 	if(fp_ch==NULL)
 		return -1;
 	else
@@ -127,20 +130,24 @@ int str_backupSystem(char* filepath) {
 		
 	fclose(fp_ch);	
 }
-
+ 
 
 //create delivery system on the double pointer deliverySystem
 //char* filepath : filepath and name to read config parameters (row, column, master password, past contexts of the delivery system
 //return : 0 - successfully created, -1 - failed to create the system
 int str_createSystem(char* filepath) {
 	
-	int i;
+	FILE *fp_read;
+	int i,j,k,t;
+	int c;
+	
+	fp_read=fopen(filepath,"r");
 	deliverySystem=(storage_t**)malloc(sizeof(storage_t*)*MAX_ROW);
-	for(i=0;i<MAX_COLUMN;i++)
+	for(i=0;i<MAX_ROW;i++)
 	{
 		deliverySystem[i]=(storage_t*)malloc(sizeof(storage_t)*MAX_COLUMN);
 	}
-
+	
 	if(deliverySystem==NULL)
 	{
 		return -1;
@@ -148,13 +155,48 @@ int str_createSystem(char* filepath) {
 	else 
 		return 0;
 	
-}
+	while((c=fgetc(fp_read))!='\t')
+	{
+		fscanf(fp_read,"%d %d",&MAX_ROW,&MAX_COLUMN);
+	}
+	while((c=fgetc(fp_read))!='\r')
+	{
+		for(i=0;i<MAX_ROW;i++)				//record structure related with delivery
+		{	
+			for(j=0;j<MAX_COLUMN;j++)
+			{
+				fscanf(fp_read,"%d %d %d",deliverySystem[i][j].building,deliverySystem[i][j].cnt,deliverySystem[i][j].room);
+			
+				for(k=0;k<MAX_MSG_SIZE+1;k++)
+				{
+					fscanf(fp_read,"%s",deliverySystem[i][j].context[k]);
+				}
+			
+				for(t=0;t<PASSWD_LEN+1;t++)
+				{
+					fscanf(fp_read,"%s",deliverySystem[i][j].passwd[t]);
+				}
+				
+				if((c=fgetc(fp_read))='\n')
+					continue;
+					//한줄을 다 읽고 다음 줄에서 다시 시작할 수 있도록 하는데... 이것도 질문, 이상하거나 오류가 생기는 건 아닌가? 오류 생기는 것
+					//같은ㄷ... 
+			
+			}
+		}
+	}
+	
+	while((c=fgetc(fp_read))!=EOF)
+	{
+		fscanf(fp_read,"%4s",&masterPassword[PASSWD_LEN+1]);
+	}
+}//이 부분 질문할 것! filepath가 필요한 이유와 filepath를 사용하는 방법. 저장한 내용을 어떻게 가져오는지를 질문합시다! 
 
 //free the memory of the deliverySystem 
 void str_freeSystem(void) {
 	
 	int i;
-	for(i=0;i<MAX_COLUMN;i++)
+	for(i=0;i<MAX_ROW;i++)
 	{
 		free(deliverySystem[i]);
 	}
@@ -245,9 +287,8 @@ int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_S
 		else
 			break;
 	}
-	check_number = str_check(deliverySystem[x][y].context);
 	
-	if(check_number>0)
+	if(strlen(deliverySystem[x][y].context)>0)
 		deliverySystem[x][y].cnt=1;
 	else
 		deliverySystem[x][y].cnt=0;
