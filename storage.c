@@ -26,7 +26,7 @@ typedef struct {
 
 static storage_t** deliverySystem; 			//deliverySystem
 static int storedCnt = 0;					//number of cells occupied
-int systemSize[2] = {0, 0};  				//row/column of the delivery system
+static int systemSize[2] = {0, 0};  				//row/column of the delivery system
 static int masterPassword[PASSWD_LEN+1];	//master password
 static int password[PASSWD_LEN+1];			//array for password that person input to find that person's package
 
