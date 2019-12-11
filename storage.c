@@ -26,10 +26,10 @@ typedef struct {
 
 static storage_t** deliverySystem; 			//deliverySystem
 static int storedCnt = 0;					//number of cells occupied
-static int systemSize[2] = {0, 0};  		//row/column of the delivery system
-static int masterPassword[PASSWD_LEN+1];				//master password
-static int MAX_ROW, MAX_COLUMN;
-static int password[PASSWD_LEN+1];
+int systemSize[2] = {0, 0};  				//row/column of the delivery system
+static int masterPassword[PASSWD_LEN+1];	//master password
+static int password[PASSWD_LEN+1];			//array for password that person input to find that person's package
+
 
 
 // ------- inner functions ---------------
@@ -54,33 +54,50 @@ static void printStorageInside(int x, int y) {
 //int x, int y : cell coordinate to be initialized
 static void initStorage(int x, int y) {
 	
-	deliverySystem[x][y].building = '\0';
-	deliverySystem[x][y].cnt = '\0';
-	deliverySystem[x][y].context = '\0';
-	deliverySystem[x][y].passwd[PASSWD_LEN+1]= '\0';
-	deliverySystem[x][y].room = '\0';
+	int i;									//integer for 'for'
+	deliverySystem[x][y].building = 0;		//initialize building
+	deliverySystem[x][y].cnt = 0;			//initialize cnt
+	for(i=0;i<PASSWD_LEN+1;i++)				//initialize password
+	{
+		deliverySystem[x][y].passwd[i]= '\0';
+	}
+	deliverySystem[x][y].room = 0;			//initialize room
 	
-}//이렇게 하면안되는지... 포인터에 메모리를 할당하는것..? 
+}
 
 //get password input and check if it is correct for the cell (x,y)
 //int x, int y : cell for password check
 //return : 0 - password is matching, -1 - password is not matching
 static int inputPasswd(int x, int y) {
 	
-	int i;
+	int i;								//integer for 'for'
+	int number_check=0;					//integer to check the password that you input whether that match the real password
+	int number_master=0;				//integer to check the password that you input whether that match the master password
  
-	printf("input the password : ");
-	scanf("%4s",&password[PASSWD_LEN+1]);
+	printf("input the password : ");	//print the sentence that mean input the password
+	scanf("%s",&password);				//scanf the sentence
 	
-	for(i=0;i<PASSWD_LEN+1;i++)
+	for(i=0;i<PASSWD_LEN;i++)			//'for' to matck the real password
 	{
 		if(password[i]==deliverySystem[x][y].passwd[i])
-			return 0;
-		else
-			return -1;
-			break;
+			number_check++;				//if the character is right the password element, number_check is up one by one.
 		
 	}
+	
+	if(number_check==4)					//if the number_check is 4, that means the password is right, so return 0
+		return 0;
+	else								//if the number_chck isn't 4, that means the password isn't right so check the password is master password or is wrong password
+		
+		for(i=0;i<PASSWD_LEN;i++)		//'for' to match the master password
+		{
+			if(password[i]==masterPassword[i])
+				number_master++;		//if the character is right the masterPassword element, number_master is up one by one.
+		}
+		
+		if(number_master==4)			//if the number_master is 4, that means the password match the master password, so return 0
+			return 0;
+		else
+			return -1;					//that means the password you input is wrong!
 }
 
 
@@ -95,37 +112,33 @@ static int inputPasswd(int x, int y) {
 int str_backupSystem(char* filepath) {
 	FILE *fp;							//define file pointer to write 
 	FILE *fp_ch;						//define file pointer to check that the system context is well recorded
-	int i, j, k, t;							//define number used "for" 
-	fp = fopen(filepath,"w");			
-								//record row 
-								//record column
-	fprintf(fp,"\t");
-	for(i=0;i<MAX_ROW;i++)				//record structure related with delivery
+	int i, j, k, t;						//define number used "for" 
+	fp=fopen(filepath,"wt");			//rewrite the all context 
+	
+	fprintf(fp,"%d %d\n",systemSize[0] ,systemSize[1]);	//rewrite the system Size
+	fprintf(fp,"%s",masterPassword);					//rewrite the masterPassword
+	fprintf(fp,"\n");									//to distinguish the delivery element that can change between never changed information
+
+	for(i=0;i<systemSize[0];i++)				//record structure related with delivery
 	{
-		for(j=0;j<MAX_COLUMN;j++)
+		for(j=0;j<systemSize[1];j++)
 		{
-			fprintf(fp,"%d %d %d",deliverySystem[i][j].building,deliverySystem[i][j].cnt,deliverySystem[i][j].room);
-			
-			for(k=0;k<MAX_MSG_SIZE+1;k++)
+			if(deliverySystem[i][j].cnt>0)		//check if that cell has information. if there not information, it need not to record information 
 			{
-				fprintf(fp,"%s",deliverySystem[i][j].context[k]);
+				//record the information
+				fprintf(fp, "%d %d %d %d %s %s",i,j,deliverySystem[i][j].building,deliverySystem[i][j].room,deliverySystem[i][j].passwd,deliverySystem[i][j].context);			
+				fprintf(fp,"\n");				//to distinguish information
 			}
-			
-			for(t=0;t<PASSWD_LEN+1;t++)
-			{
-				fprintf(fp,"%s",deliverySystem[i][j].passwd[t]);
-			}
-			
-			fprintf(fp,"\n");
 		}
 	}
-	fprintf(fp,"\r");
+	
 	fclose(fp);
 	
 	fp_ch = fopen(filepath,"r");
-	if(fp_ch==NULL)
+	//check the information is recorded
+	if(fp_ch==NULL)				//if it is null return -1
 		return -1;
-	else
+	else						//if the file has a information return 0; that means well recorded
 		return 0;
 		
 	fclose(fp_ch);	
@@ -137,71 +150,82 @@ int str_backupSystem(char* filepath) {
 //return : 0 - successfully created, -1 - failed to create the system
 int str_createSystem(char* filepath) {
 	
-	FILE *fp_read;
-	int i,j,k,t;
-	int c;
+	FILE *fp;					//define file pointer
+	fp = fopen(filepath,"r");	//file pointer that means reading file
+	int i,j;					//integer used for 'for'
+	char c;						//character that used to check the end of the file
+	int row,cell;				//integer to use row and cell
+	char pack[MAX_MSG_SIZE+1];	//array to use to get the context temporally
 	
-	fp_read=fopen(filepath,"r");
-	deliverySystem=(storage_t**)malloc(sizeof(storage_t*)*MAX_ROW);
-	for(i=0;i<MAX_ROW;i++)
+	fscanf(fp,"%d",&systemSize[0]);	//scanf the total row that is in the file
+	fscanf(fp,"%d",&systemSize[1]);	//scanf the total cell that is in the file
+	fscanf(fp,"%s",masterPassword);	//scanf the master password that is in the file
+	deliverySystem=(storage_t**)malloc(sizeof(storage_t*)*systemSize[0]);	//make the memory for deliverySystem.
+	
+	for(i=0;i<systemSize[0];i++)	//make the deliverySytem's cell memory
 	{
-		deliverySystem[i]=(storage_t*)malloc(sizeof(storage_t)*MAX_COLUMN);
+		deliverySystem[i]=(storage_t*)malloc(sizeof(storage_t)*systemSize[1]);
 	}
 	
-	if(deliverySystem==NULL)
+
+	for(i=0;i<systemSize[0];i++)		//initialize the deliverySystem
 	{
-		return -1;
-	}
-	else 
-		return 0;
-	
-	while((c=fgetc(fp_read))!='\t')
-	{
-		fscanf(fp_read,"%d %d",&MAX_ROW,&MAX_COLUMN);
-	}
-	while((c=fgetc(fp_read))!='\r')
-	{
-		for(i=0;i<MAX_ROW;i++)				//record structure related with delivery
-		{	
-			for(j=0;j<MAX_COLUMN;j++)
-			{
-				fscanf(fp_read,"%d %d %d",deliverySystem[i][j].building,deliverySystem[i][j].cnt,deliverySystem[i][j].room);
-			
-				for(k=0;k<MAX_MSG_SIZE+1;k++)
-				{
-					fscanf(fp_read,"%s",deliverySystem[i][j].context[k]);
-				}
-			
-				for(t=0;t<PASSWD_LEN+1;t++)
-				{
-					fscanf(fp_read,"%s",deliverySystem[i][j].passwd[t]);
-				}
-				
-				if((c=fgetc(fp_read))='\n')
-					continue;
-					//한줄을 다 읽고 다음 줄에서 다시 시작할 수 있도록 하는데... 이것도 질문, 이상하거나 오류가 생기는 건 아닌가? 오류 생기는 것
-					//같은ㄷ... 
-			
-			}
+		for(j=0;j<systemSize[1];j++)
+		{
+			initStorage(i,j);
 		}
 	}
 	
-	while((c=fgetc(fp_read))!=EOF)
+	while((c=fgetc(fp))!=EOF)		//get the information to operate system related with delivery
 	{
-		fscanf(fp_read,"%4s",&masterPassword[PASSWD_LEN+1]);
+		fscanf(fp,"%d",&row);		//first, get information related with row
+		fscanf(fp,"%d",&cell);		//next, get information related with cell
+		fscanf(fp,"%d",&deliverySystem[row][cell].building);	//next. get information related with building
+		fscanf(fp,"%d",&deliverySystem[row][cell].room);		//next, get information related with room
+		fscanf(fp,"%s",deliverySystem[row][cell].passwd);		//next, get information related with password that deliverySystem row, and cell have to contain
+		fscanf(fp,"%s",pack);									//next, get information realted with context and record in array 
+		deliverySystem[row][cell].context = (char*)malloc(sizeof(char)*(strlen(pack)+1));	//make the memory for context, and the memory is sized by the length of pack
+		strcpy(deliverySystem[row][cell].context,pack);	//and get the information that is in the array to context pointer.
 	}
-}//이 부분 질문할 것! filepath가 필요한 이유와 filepath를 사용하는 방법. 저장한 내용을 어떻게 가져오는지를 질문합시다! 
+	
+	fclose(fp);		//close the file
+
+	for(i=0;i<systemSize[0];i++)		//allocate the cnt
+	{
+		for(j=0;j<systemSize[1];j++)
+		{
+			if(strlen(deliverySystem[i][j].passwd)>0)		//it means there is the package in that cell{i,j}, so change that cell cnt 0 to 1
+				deliverySystem[i][j].cnt = 1;
+		}
+	}
+	
+	if(deliverySystem==NULL)		//it means deliverySystem doesn't create
+	{
+		return -1;
+	}
+	return 0;		//else , that means deliverySystem is well created
+}
 
 //free the memory of the deliverySystem 
 void str_freeSystem(void) {
 	
-	int i;
-	for(i=0;i<MAX_ROW;i++)
+	int i,j;
+	
+	for(i=0;i<systemSize[0];i++)
+	{
+		for(j=0;j<systemSize[1];j++)
+		{
+			if(deliverySystem[i][j].cnt>0)			//not all cell don't allocated memory, so check which cell's context has memory
+				free(deliverySystem[i][j].context);		//if that cell has memory, free that context memory.
+		}
+	}
+	
+	for(i=0;i<systemSize[0];i++)		//free the cell memory
 	{
 		free(deliverySystem[i]);
 	}
 	
-	free(deliverySystem);
+	free(deliverySystem);		//free the row memory
 	
 }
 
@@ -210,6 +234,8 @@ void str_freeSystem(void) {
 //print the current state of the whole delivery system (which cells are occupied and the destination of the each occupied cells)
 void str_printStorageStatus(void) {
 	int i, j;
+	
+	
 	printf("----------------------------- Delivery Storage System Status (%i occupied out of %i )-----------------------------\n\n", storedCnt, systemSize[0]*systemSize[1]);
 	
 	printf("\t");
@@ -265,39 +291,27 @@ int str_checkStorage(int x, int y) {
 //return : 0 - successfully put the package, -1 - failed to put
 int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_SIZE+1], char passwd[PASSWD_LEN+1]) {
 	
-	int i, check_number;
-	deliverySystem[x][y].building = nBuilding;
-	deliverySystem[x][y].room = nRoom;
+	int i;											//integer for 'for'
+	deliverySystem[x][y].building = nBuilding;		//allocate the building number that cell which you chose
+	deliverySystem[x][y].room = nRoom;				//allocate the room number that cell which you chose
 	 
-	for (i=0;i<MAX_MSG_SIZE+1;i++)
+	
+	deliverySystem[x][y].context = (char*)malloc(sizeof(char)*(strlen(msg)+1));	//allocate the memory size that you input the context length and +1 to record NULL 
+	strcpy(deliverySystem[x][y].context,msg);	//get the information msg array has. 
+	
+	for(i=0;i<PASSWD_LEN+1;i++)			//the password is array, so get the informaiton one by one
 	{
-		if(msg[i]!='\0')
-		{
-			deliverySystem[x][y].context[i]=msg[i];
-		}
-		else
-			break;
-	}
-	for(i=0;i<PASSWD_LEN+1;i++)
-	{
-		if(passwd[i]!='\0')
-		{
-			deliverySystem[x][y].passwd[i] = passwd[i];
-		}
-		else
-			break;
+		deliverySystem[x][y].passwd[i] = passwd[i];
 	}
 	
-	if(strlen(deliverySystem[x][y].context)>0)
+	if(strlen(deliverySystem[x][y].context)>0)		//if there is the package in that cell, change the cnt 0 to 1 to mean that there is the package in that cell
 		deliverySystem[x][y].cnt=1;
-	else
-		deliverySystem[x][y].cnt=0;
 	
-	if(deliverySystem[x][y].cnt=0)
-		return -1;
+	if(deliverySystem[x][y].cnt==1)	//this is mean well push the package.
+		return 0;
 	
-	else   
-		return 0;   
+	else		//it means the package is not well recored.
+		return -1; 
 }
 
 
@@ -307,25 +321,20 @@ int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_S
 //int x, int y : coordinate of the cell to extract
 //return : 0 - successfully extracted, -1 = failed to extract
 int str_extractStorage(int x, int y) {
-	int passwd;
-	int i;
-	passwd = inputPasswd(x, y);
-	if(passwd==0)
+	int passwd;		//to check the password is right or worng.
+	passwd = inputPasswd(x, y); //get return 0 or -1
+	if(passwd==0)		//right password
 	{
-		
-		for(i=0;i<MAX_MSG_SIZE+1;i++)
-		{
-			if(deliverySystem[x][y].context[i] !='\0')
-			{
-				printf("%s",deliverySystem[x][y].context[i]);
-			}
-		}
-		initStorage(x,y);
-		return 0;
+		printf("------>context is : %s",deliverySystem[x][y].context);		//print the context that cell has
+		free(deliverySystem[x][y].context);		//free the memory that cell's context has. becase you get the package in that cell has
+		initStorage(x,y);		//initialize that cell. becase you get the package in that cell has.
+		return 0;				//if well extracted
 	}
-	else
+	
+	else		//it means wrong password you input
 	{
-		return -1;
+		printf("----------------wrong password!--------------------\n");		//it need be noticed why you can't get your package
+		return -1;	//to say that you fail to extrat
 	}
 }
 
@@ -334,16 +343,16 @@ int str_extractStorage(int x, int y) {
 //int nBuilding, int nRoom : my building/room numbers
 //return : number of packages that the storage system has
 int str_findStorage(int nBuilding, int nRoom) {
-	int i,j;
-	int cnt=0;	
-	for(i=0;i<MAX_ROW;i++)
+	int i,j;		//integer to use 'for'
+	int cnt=0;		//first the cnt is 0; 
+	for(i=0;i<systemSize[0];i++)
 	{
-		for(j=0;j<MAX_COLUMN;j++)
+		for(j=0;j<systemSize[1];j++)
 		{
-			if(deliverySystem[i][j].building==nBuilding&&deliverySystem[i][j].room==nRoom)
+			if(deliverySystem[i][j].building==nBuilding&&deliverySystem[i][j].room==nRoom)	//check the the cell contain the number you input
 			{
-				printf("{%d, %d}", i,j);
-				cnt++;
+				printf("{row : %d cell : %d}\n", i,j);		//print the cell
+				cnt++;			//if the program find the cell that contain you input the number plus one by one. 
 			}
 			
 		}

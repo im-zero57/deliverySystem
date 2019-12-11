@@ -1,10 +1,11 @@
-	#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "storage.h"
 
 #define N_BUILDING				10
 #define N_FLOOR					10
 #define N_ROOM					10
+
 #define STORAGE_FILEPATH 		"storage.txt"
 
 /* run this program using the console pauser or add your own getch, system("pause") or input loop */
